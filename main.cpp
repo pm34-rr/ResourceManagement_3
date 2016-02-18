@@ -11,13 +11,16 @@
 #include <stdlib.h>
 #include <locale.h>
 
+#include <iostream>
+using namespace std;
+
 /*!
  * \brief Выводит сообщение об ошибке и закрывает программу с кодом ошибки = 1
  * \param errorText Текст ошибки
  */
-void printError( char * errorText )
+void printError( const char * errorText )
 {
-	printf( errorText );
+	cout << errorText << endl;
 	exit( 1 );
 }
 
@@ -28,12 +31,12 @@ void printError( char * errorText )
  */
 int * readParentFiles( int n )
 {
-	printf( "Введите количество файлов, открытых %d процессами-предками:\n", n );
-	int * mas = malloc( sizeof(int) * n );
+	cout << "Введите количество файлов, открытых " << n << " процессами-предками:" << endl;
+	int * mas = new int[n];
 	for ( int i = 0; i < n; ++i ) {
-		scanf( "%d", &mas[i] );
+		cin >> mas[i];
 		if ( mas[i] < 0 )
-			printError( "Количество открытых файлов должно быть неотрицательным числом.\n" );
+			printError( "Количество открытых файлов должно быть неотрицательным числом." );
 	}
 
 	return mas;
@@ -48,13 +51,12 @@ int * readParentFiles( int n )
  */
 int * readChildrenFiles( int n )
 {
-	printf( "Введите количество файлов, открытых %d процессами-потомками:\n", n );
-	int * mas = malloc( sizeof(int) * n );
+	cout << "Введите количество файлов, открытых " << n << " процессами-потомками:" << endl;
+	int * mas = new int[n];
 	for ( int i = 0; i < n; ++i ) {
-		scanf( "%d", &mas[i] );
-		if ( mas[i] < 0 ) {
-			printError( "Количество открытых файлов должно быть неотрицательным числом.\n" );
-		}
+		cin >> mas[i];
+		if ( mas[i] < 0 )
+			printError( "Количество открытых файлов должно быть неотрицательным числом." );
 	}
 
 	return mas;
@@ -66,26 +68,29 @@ int * readChildrenFiles( int n )
  */
 void printTable( int count )
 {
-	int n = count;
+	const int FIELD_WIDTH = 30;
 
-	char filenameStr[]	 = "Имя файла";
-	char descriptorStr[] = "Дескриптор";
+	cout.width( FIELD_WIDTH );
+	cout << std::left;
+	cout << "Имя файла";
+	cout << "Дескриптор" << endl;
 
-	const int FIELD_SIZE = 30;
+	cout.width( FIELD_WIDTH );
+	cout << "stdin";
+	cout << 0 << endl;
 
-	printf( "%-*s", FIELD_SIZE, filenameStr );
-	printf( "%s\n", descriptorStr );
+	cout.width( FIELD_WIDTH );
+	cout << "stdout";
+	cout << 1 << endl;
 
-	char stdinStr[]	 = "stdin";
-	char stdoutStr[] = "stdout";
-	char stderrStr[] = "stderr";
+	cout.width( FIELD_WIDTH );
+	cout << "stderr";
+	cout << 2 << endl;
 
-	printf( "%-*s", FIELD_SIZE, stdinStr ); printf( "0\n" );
-	printf( "%-*s", FIELD_SIZE, stdoutStr ); printf( "1\n" );
-	printf( "%-*s", FIELD_SIZE, stderrStr ); printf( "2\n" );
-
-	for ( int j = 0; j < n; ++j ) {
-		printf( "Файл %-*d", FIELD_SIZE-5, j ); printf( "fd%d\n", j );
+	for ( int j = 0; j < count; ++j ) {
+		cout.width( FIELD_WIDTH + 4 );
+		cout << "Файл " + std::to_string( j );
+		cout << "fd" + std::to_string( j ) << endl;
 	}
 }
 
@@ -96,7 +101,7 @@ void printTable( int count )
  */
 void printFileTableParent( int i, int count )
 {
-	printf( "Таблица файлов %d процесса-предка:\n", i );
+	cout << "Таблица файлов " << i << " процесса-предка:" << endl;
 	printTable( count );
 }
 
@@ -110,7 +115,8 @@ void printFileTableParent( int i, int count )
  */
 void printChildrenBaseTable( int i, int count )
 {
-	printFileTableParent( i, count );
+	cout << "Таблица файлов " << i << " процесса-потомка:" << endl;
+	printTable( count );
 }
 
 /*!
@@ -120,7 +126,7 @@ void printChildrenBaseTable( int i, int count )
  */
 void printFileTableChildren( int i, int parentCount, int ownAdd )
 {
-	printf( "Таблица файлов %d процесса-потомка:\n", i );
+	cout << "Таблица файлов " << i << " процесса-потомка:" << endl;
 	printTable( parentCount + ownAdd );
 }
 
@@ -130,9 +136,9 @@ int main()
 
 	//! Чтение количества процессов-предков
 	int n;
-	printf( "Задайте количество процессов-предков:\n" );
-	scanf( "%d", &n );
-	if ( n < 1 )
+	cout << "Задайте количество процессов-предков:" << endl;
+	cin >> n;
+		if ( n < 1 )
 		printError( "Количество процессов-предков должно быть положительным целым числом.\n" );
 
 	//! Чтение количества файлов, открытых процессами-предками
@@ -142,33 +148,53 @@ int main()
 
 	//! Чтение количества процессов-потомков
 	int m;
-	printf( "Задайте количество процессов-потомков:\n" );
-	scanf( "%d", &m );
+	cout << "Задайте количество процессов-потомков:" << endl;
+	cin >> m;
 	if ( m < 0 )
-		printError( "Количество процессов-потомков должно быть неотрицательным целым числом.\n" );
+		printError( "Количество процессов-потомков должно быть неотрицательным целым числом." );
 
-	int * parentId = malloc( sizeof(int) * m );
+	if ( m > n )
+		printError( "Количество процессов-потомков не может быть больше, чем количество процессов-предков." );
+
+	int * parentId = new int[m];
 	for ( int i = 0; i < m; ++i ) {
-		printf( "Задайте родитель для %d потомка, %d процесса: ", i, i + n );
-		scanf( "%d", &parentId[i] );
-		printf("\n");
+		cout << "Задайте родитель для " << i << " потомка, " << i+n << " процесса: ";
+		cin >> parentId[i];
+		if ( parentId[i] >= n )
+			printError( "Номер предка не может превышать количества процессов-предков." );
+		cout << endl;
 	}
 
 	//! Вывод таблиц файлов для процессов-потомков
 	for ( int i = 0; i < m; ++i )
-		printChildrenBaseTable( i+n, files[ parentId[i] ] );
+		printChildrenBaseTable( i, files[ parentId[i] ] );
+	delete parentId;
 
 	//! Чтение количества процессов-потомков, что открыли доп файлы.
 	int k;
-	printf( "Задайте количество процессов-потомков, которые открыли дополнительные файлы:\n" );
-	scanf( "%d", &k );
+	cout << "Задайте количество процессов-потомков, которые открыли дополнительные файлы:" << endl;
+	cin >> k;
 	if ( k < 0 )
-		printError( "Количество процессов-потомков должно быть неотрицательным целым числом.\n" );
+		printError( "Количество процессов-потомков должно быть неотрицательным целым числом." );
+
+	if ( k > m )
+		printError( "Количество процессов-потомков, что дополнительно открывают файлы, не должно превышать количество процессов-потомков" );
+
+	//! Чтение номер процессов-потомков, что открывают файлы
+	int * childrenId = new int[k];
+	for ( int i = 0; i < k; ++i ) {
+		cout << endl;
+		cout << "Задайте номер процесса-потомка, что открывает дополнительные файлы: ";
+		cin >> childrenId[i];
+		if ( childrenId[i] >= m )
+			printError( "номер процесса-потомка для процесса, открывающего дополнительные файлы,  не может превышать количества процессов-потомков-1." );
+	}
+	cout << endl;
 
 	//! Чтение количества файлов, открытых k потомками
 	int * childrenFiles = readChildrenFiles( k );
 	for ( int i = 0; i < k; ++i )
-		printFileTableChildren( i+n, files[i], childrenFiles[i] );
+		printFileTableChildren( childrenId[i], files[ childrenId[i] ], childrenFiles[i] );
 
 	return 0;
 }

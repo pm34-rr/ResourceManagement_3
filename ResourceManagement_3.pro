@@ -3,4 +3,7 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-SOURCES += main.c
+CONFIG += c++11
+
+SOURCES += \
+    main.cpp
